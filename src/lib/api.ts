@@ -1,39 +1,16 @@
-/**
- * API Utility
- * 
- * Helper functions untuk fetch data dari backend API
- * Kamu bisa modify atau extend sesuai kebutuhan
- */
+import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+export const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+});
 
-/**
- * Generic fetch function dengan error handling
- */
-async function fetchAPI<T>(endpoint: string): Promise<T> {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    let token = localStorage.getItem("token");
+    if (token) {
+      const cleanToken = token.trim().replace(/^"|"$/g, "");
+      config.headers.Authorization = `Bearer ${cleanToken}`;
     }
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('API Fetch Error:', error);
-    throw error;
   }
-}
-
-// TODO: Implement API functions sesuai dengan endpoint yang tersedia
-// Contoh:
-// export async function getBlogPosts() {
-//   return fetchAPI<BlogPost[]>('/posts');
-// }
-//
-// export async function getBlogPost(id: string) {
-//   return fetchAPI<BlogPost>(`/posts/${id}`);
-// }
-
-export { fetchAPI, API_BASE_URL };
+  return config;
+});
